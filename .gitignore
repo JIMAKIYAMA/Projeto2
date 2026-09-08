@@ -1,0 +1,4 @@
+.env
+.venv
+ca.pem
+/api_escola
