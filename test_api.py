@@ -4,6 +4,7 @@ from app import connect_db, app
 import mysql.connector
 from dotenv import load_dotenv
 import os
+from imoveis import gerar_links
 
 load_dotenv()
 
@@ -44,15 +45,19 @@ def test_listar_todos(mock_connect_db, cliente):
     conn_mock.cursor.return_value = cursor_mock
 
     gabarito = [
-        ('Nicole Common', 'Travessa', 'Lake Danielle', 'Judymouth', '85184', 'casa em condominio', 488423.52, '2017-07-29'),
-        ('Price Prairie', 'Travessa', 'Colonton', 'North Garyville', '93354', 'casa em condominio', 260069.89, '2021-11-30')
+            {'id': 1, 'logradouro': 'Nicole Common', 'tipo_logradouro': 'Travessa', 'bairro': 'Lake Danielle', 'cidade': 'Judymouth', 'cep': '85184', 'tipo': 'casa em condominio', 'valor': 488423.52, 'data_aquisicao': '2017-07-29' },
+            {'id': 2, 'logradouro': 'Price Prairie', 'tipo_logradouro': 'Travessa', 'bairro': 'Colonton', 'cidade': 'North Garyville', 'cep': '93354', 'tipo': 'casa em condominio', 'valor': 260069.89, 'data_aquisicao': '2021-11-30'}
     ]
+
+    for gab in gabarito:
+        gab['_links'] = gerar_links(gab['id'])
+
     cursor_mock.fetchall.return_value = gabarito
     resposta = cliente.get('/imoveis')
 
-    gabarito_json = [list(imovel) for imovel in gabarito]
+
     assert resposta.status_code == 200
-    assert resposta.get_json() == gabarito_json
+    assert resposta.get_json() == gabarito
 
 @patch('app.connect_db')
 def test_buscar_por_imovel(mock_connect_db, cliente):
@@ -61,15 +66,16 @@ def test_buscar_por_imovel(mock_connect_db, cliente):
 
     conn_mock.cursor.return_value = cursor_mock
     mock_connect_db.return_value = conn_mock
+    gabarito = {
+        'id': 1, 'logradouro': 'Nicole Common', 'tipo_logradouro': 'Travessa', 'bairro': 'Lake Danielle', 'cidade': 'Judymouth', 'cep': '85184', 'tipo': 'casa em condominio', 'valor': 488423.52, 'data_aquisicao': '2017-07-29'
+    }
 
-    gabarito = (
-        'Nicole Common', 'Travessa', 'Lake Danielle', 'Judymouth', 
-        '85184', 'casa em condominio', 488423.52, '2017-07-29'
-    )
+    gabarito['_links'] = gerar_links(gabarito['id'])
+
     cursor_mock.fetchone.return_value = gabarito
     resposta = cliente.get('/imoveis/1')
 
-    assert resposta.get_json() == list(gabarito)
+    assert resposta.get_json() == gabarito
     assert resposta.status_code == 200
 
 @patch('app.connect_db')
@@ -146,15 +152,18 @@ def test_buscar_por_tipo(mock_connect_db, cliente):
 
 
     gabarito = [
-            ('Nicole Common', 'Travessa', 'Lake Danielle', 'Judymouth', '85184', 'casa em condominio', 488423.52, '2017-07-29'),
-            ('Price Prairie', 'Travessa', 'Colonton', 'North Garyville', '93354', 'casa em condominio', 260069.89, '2021-11-30')
-        ]
+        {'id': 1, 'logradouro': 'Nicole Common', 'tipo_logradouro': 'Travessa', 'bairro': 'Lake Danielle', 'cidade': 'Judymouth', 'cep': '85184', 'tipo': 'casa em condominio', 'valor': 488423.52, 'data_aquisicao': '2017-07-29' },
+        {'id': 2, 'logradouro': 'Price Prairie', 'tipo_logradouro': 'Travessa', 'bairro': 'Colonton', 'cidade': 'North Garyville', 'cep': '93354', 'tipo': 'casa em condominio', 'valor': 260069.89, 'data_aquisicao': '2021-11-30'}
+    ]
+
+    for gab in gabarito:
+        gab['_links'] = gerar_links(gab['id'])
+
     cursor_mock.fetchall.return_value = gabarito
 
     resposta = cliente.get(f'/imoveis/tipo/casa em condominio')
-    gabarito_json = [list(imovel) for imovel in gabarito]
 
-    assert resposta.get_json() == gabarito_json
+    assert resposta.get_json() == gabarito
     assert resposta.status_code == 200 
 
 
@@ -167,13 +176,15 @@ def test_buscar_por_cidade(mock_connect_db, cliente):
     mock_connect_db.return_value = conn_mock
 
     gabarito = [
-            ('Nicole Common', 'Travessa', 'Lake Danielle', 'Curitiba', '85184', 'casa em condominio', 488423.52, '2017-07-29'),
-            ('Price Prairie', 'Travessa', 'Colonton', 'Curitiba', '93354', 'casa em condominio', 260069.89, '2021-11-30')
+            {'id': 1, 'logradouro': 'Nicole Common', 'tipo_logradouro': 'Travessa', 'bairro': 'Lake Danielle', 'cidade': 'Judymouth', 'cep': '85184', 'tipo': 'casa em condominio', 'valor': 488423.52, 'data_aquisicao': '2017-07-29' },
+            {'id': 2, 'logradouro': 'Price Prairie', 'tipo_logradouro': 'Travessa', 'bairro': 'Colonton', 'cidade': 'North Garyville', 'cep': '93354', 'tipo': 'casa em condominio', 'valor': 260069.89, 'data_aquisicao': '2021-11-30'}
         ]
+    for gab in gabarito:
+        gab['_links'] = gerar_links(gab['id'])
+
     cursor_mock.fetchall.return_value = gabarito
 
     resposta = cliente.get(f'/imoveis/cidade/Curitiba')
-    gabarito_json = [list(imovel) for imovel in gabarito]
 
-    assert resposta.get_json() == gabarito_json
+    assert resposta.get_json() == gabarito
     assert resposta.status_code == 200 

@@ -44,5 +44,12 @@ def criar_banco_de_dados():
         if 'db' in locals() and db.is_connected():
             db.close()
 
+def gerar_links(movel_id):
+    return [
+        {'rel': 'self', 'href':f'/imoveis/{movel_id}', 'method': 'GET'},
+        {'rel': 'update', 'href':f'/imoveis/{movel_id}', 'method': 'PUT'},
+        {'rel': 'delete', 'href':f'/imoveis/{movel_id}', 'method': 'DELETE'},
+    ]
+
 if __name__ == '__main__':
      criar_banco_de_dados()

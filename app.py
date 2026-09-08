@@ -3,7 +3,7 @@ import os
 import mysql.connector
 from mysql.connector import Error
 from dotenv import load_dotenv
-
+from imoveis import gerar_links
 
 load_dotenv('.env')
 
@@ -37,13 +37,16 @@ def listar_todos():
         return jsonify({'mensagem': 'Erro interno ao tentar conectar ao banco de dados'}), 500
 
     try:
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT * FROM imoveis")
         resultado = cursor.fetchall()
 
         if not resultado: 
             return jsonify({'mensagem': 'Nenhum imóvel encontrado'}), 200
         
+        for imovel in resultado:
+            imovel['_links'] = gerar_links(imovel['id'])
+
         return jsonify(resultado), 200
 
     except Exception as e:
@@ -61,12 +64,14 @@ def buscar_por_id(id):
         return jsonify({'mensagem': 'Erro interno ao tentar conectar ao banco de dados'}), 500
 
     try:
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT * FROM imoveis WHERE id = %s", (id,))
         resultado = cursor.fetchone()
 
         if not resultado: 
-            return jsonify({'mensagem': 'Nenhum imóvel encontrado'}), 200
+            return jsonify({'mensagem': 'Nenhum imóvel encontrado'}), 404
+        
+        resultado['_links'] = gerar_links(resultado['id'])
 
         return jsonify(resultado), 200
     
@@ -85,15 +90,21 @@ def adicionar():
 
     add = request.get_json()
 
+    if not add:
+        return jsonify({'mensagem': 'não encontrado'}), 400
+    
+    if not add.get('logradouro') or not add.get('tipo_logradouro') or not add.get('bairro') or not add.get('cidade') or not add.get('cep') or not add.get('tipo') or not add.get('valor') or not add.get('data_aquisicao'):
+        return jsonify({'mensagem': 'não encontrado'}), 400
     try:
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
         cursor.execute("INSERT INTO imoveis (logradouro, tipo_logradouro, bairro, cidade, cep, tipo," \
         "valor, data_aquisicao) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (add['logradouro'], add['tipo_logradouro'], add['bairro'], add['cidade'],
                                            add['cep'],add['tipo'], add['valor'], add['data_aquisicao']))
 
         conn.commit()
+
         return jsonify({'mensagem': 'Imóvel adicionado com sucesso!'}), 201
-    
+
     except Exception as e:
         return jsonify({'erro': f'Ocorreu um erro: {str(e)}'}), 500
 
@@ -109,9 +120,12 @@ def deletar(id):
         return jsonify({'mensagem': 'Erro interno ao tentar conectar ao banco de dados'}), 500
 
     try:
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
         cursor.execute("DELETE FROM imoveis WHERE id = %s",(id,))
+        num = cursor.rowcount
         conn.commit()
+        if num == 0:
+            return jsonify({'mensagem': 'Não encontrado nenhum item'}), 404
 
         return jsonify({"mensagem": "Imóvel deletado com sucesso!"}), 200
     
@@ -130,11 +144,16 @@ def atualizar(id):
 
     dados = request.get_json()
     try:
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
         cursor.execute("UPDATE imoveis SET logradouro = %s, tipo_logradouro = %s, bairro = %s, cidade = %s, cep= %s, tipo= %s," \
         "valor = %s, data_aquisicao = %s WHERE id = %s",(dados['logradouro'], dados['tipo_logradouro'], dados['bairro'], dados['cidade'],
             dados['cep'], dados['tipo'], dados['valor'], dados['data_aquisicao'], id))
+
+        num = cursor.rowcount
         conn.commit()
+
+        if num == 0:
+            return jsonify({'mensagem': 'Não encontrado nehum item'}), 404
 
         return jsonify({'mensagem': 'Imóvel atualizado com sucesso!'}), 200
     
@@ -152,10 +171,15 @@ def buscar_por_tipo(tipo):
         return jsonify({'mensagem': 'Erro interno ao tentar conectar ao banco de dados'}), 500
 
     try:
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT * FROM imoveis WHERE tipo = %s",(tipo,))
         resultado = cursor.fetchall()
-        conn.commit()
+
+        if not resultado:
+            return jsonify({'mensagem': 'nenhum item foi encontrado'}), 404
+
+        for imovel in resultado:
+            imovel['_links'] = gerar_links(imovel['id'])
 
         return jsonify(resultado), 200
     
@@ -173,10 +197,16 @@ def buscar_por_cidade(cidade):
         return jsonify({'mensagem': 'Erro interno ao tentar conectar ao banco de dados'}), 500
 
     try:
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT * FROM imoveis WHERE cidade = %s",(cidade,))
         resultado = cursor.fetchall()
-        conn.commit()
+
+
+        if not resultado:
+            return jsonify({'mensagem': 'nenhum item foi encontrado'}), 404
+
+        for imovel in resultado:
+            imovel['_links'] = gerar_links(imovel['id'])
 
         return jsonify(resultado), 200
     
