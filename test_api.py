@@ -148,9 +148,6 @@ def test_buscar_por_tipo(mock_connect_db, cliente):
     conn_mock.cursor.return_value = cursor_mock
     mock_connect_db.return_value = conn_mock
 
-
-
-
     gabarito = [
         {'id': 1, 'logradouro': 'Nicole Common', 'tipo_logradouro': 'Travessa', 'bairro': 'Lake Danielle', 'cidade': 'Judymouth', 'cep': '85184', 'tipo': 'casa em condominio', 'valor': 488423.52, 'data_aquisicao': '2017-07-29' },
         {'id': 2, 'logradouro': 'Price Prairie', 'tipo_logradouro': 'Travessa', 'bairro': 'Colonton', 'cidade': 'North Garyville', 'cep': '93354', 'tipo': 'casa em condominio', 'valor': 260069.89, 'data_aquisicao': '2021-11-30'}

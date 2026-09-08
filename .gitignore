@@ -2,3 +2,5 @@
 .venv
 ca.pem
 /api_escola
+venv/
+__pycache__/
